@@ -1,100 +1,97 @@
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-
-const box = 20;
-const canvasSize = 400;
-
-let snake;
-let direction;
-let food;
-let score;
-let game;
-
-function initGame() {
-  snake = [{ x: 9 * box, y: 10 * box }];
-  direction = "RIGHT";
-  score = 0;
-
-  food = {
-    x: Math.floor(Math.random() * 19) * box,
-    y: Math.floor(Math.random() * 19) * box
-  };
-
-  document.getElementById("score").textContent = score;
-
-  if (game) clearInterval(game);
-  game = setInterval(draw, 100);
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-document.addEventListener("keydown", changeDirection);
-
-function changeDirection(event) {
-  if (event.key === "ArrowLeft" && direction !== "RIGHT") {
-    direction = "LEFT";
-  } else if (event.key === "ArrowUp" && direction !== "DOWN") {
-    direction = "UP";
-  } else if (event.key === "ArrowRight" && direction !== "LEFT") {
-    direction = "RIGHT";
-  } else if (event.key === "ArrowDown" && direction !== "UP") {
-    direction = "DOWN";
-  }
+body {
+    background-color: #1a1a2e;
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
 }
 
-function collision(head, array) {
-  return array.some(segment => head.x === segment.x && head.y === segment.y);
+.game-container {
+    text-align: center;
+    background: #161623;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-function draw() {
-  ctx.fillStyle = "#111";
-  ctx.fillRect(0, 0, canvasSize, canvasSize);
-
-  for (let i = 0; i < snake.length; i++) {
-    ctx.fillStyle = i === 0 ? "#4CAF50" : "#8BC34A";
-    ctx.fillRect(snake[i].x, snake[i].y, box, box);
-  }
-
-  ctx.fillStyle = "red";
-  ctx.fillRect(food.x, food.y, box, box);
-
-  let snakeX = snake[0].x;
-  let snakeY = snake[0].y;
-
-  if (direction === "LEFT") snakeX -= box;
-  if (direction === "UP") snakeY -= box;
-  if (direction === "RIGHT") snakeX += box;
-  if (direction === "DOWN") snakeY += box;
-
-  if (snakeX === food.x && snakeY === food.y) {
-    score++;
-    document.getElementById("score").textContent = score;
-
-    food = {
-      x: Math.floor(Math.random() * 19) * box,
-      y: Math.floor(Math.random() * 19) * box
-    };
-  } else {
-    snake.pop();
-  }
-
-  const newHead = { x: snakeX, y: snakeY };
-
-  if (
-    snakeX < 0 ||
-    snakeY < 0 ||
-    snakeX >= canvasSize ||
-    snakeY >= canvasSize ||
-    collision(newHead, snake)
-  ) {
-    clearInterval(game);
-    alert("遊戲結束！你的分數是: " + score);
-    return;
-  }
-
-  snake.unshift(newHead);
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    letter-spacing: 3px;
+    color: #00ffcc;
+    text-shadow: 0 0 10px #00ffcc;
 }
 
-function restartGame() {
-  initGame();
+.score-board {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
 }
 
-initGame();
+.score-box {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#current-score {
+    color: #ff007f;
+    font-weight: bold;
+}
+
+#high-score {
+    color: #00ffcc;
+    font-weight: bold;
+}
+
+canvas {
+    background-color: #0f0f1a;
+    border: 4px solid #00ffcc;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+    display: block;
+    margin: 0 auto;
+}
+
+.controls-hint {
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #888;
+}
+
+button {
+    margin-top: 20px;
+    padding: 12px 30px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #161623;
+    background: #00ffcc;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
+button:hover {
+    background: #ff007f;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.6);
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
