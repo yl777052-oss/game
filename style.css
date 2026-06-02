@@ -1,35 +1,144 @@
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #1e1e1e;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const scoreEl = document.getElementById("current-score");
+const highScoreEl = document.getElementById("high-score");
+const startBtn = document.getElementById("start-btn");
+
+const gridSize = 20;
+const tileCount = canvas.width / gridSize;
+let snake = [];
+let food = { x: 0, y: 0 };
+let dx = gridSize;
+let dy = 0;
+let score = 0;
+let highScore = localStorage.getItem("snakeHighScore") || 0;
+let gameInterval;
+let gameRunning = false;
+
+highScoreEl.textContent = highScore;
+
+document.addEventListener("keydown", changeDirection);
+startBtn.addEventListener("click", startGame);
+
+function startGame() {
+    if (gameRunning) clearInterval(gameInterval);
+    
+    snake = [
+        { x: gridSize * 5, y: gridSize * 5 },
+        { x: gridSize * 4, y: gridSize * 5 },
+        { x: gridSize * 3, y: gridSize * 5 }
+    ];
+    score = 0;
+    scoreEl.textContent = score;
+    dx = gridSize;
+    dy = 0;
+    gameRunning = true;
+    
+    generateFood();
+    gameInterval = setInterval(update, 100); 
 }
 
-.container {
-  text-align: center;
+function update() {
+    if (hasGameEnded()) {
+        clearInterval(gameInterval);
+        gameRunning = false;
+        alert(`遊戲結束！你的分數是: ${score}`);
+        return;
+    }
+
+    clearCanvas();
+    drawFood();
+    moveSnake();
+    drawSnake();
 }
 
-canvas {
-  background: #111;
-  border: 3px solid #4CAF50;
-  margin-top: 10px;
+function clearCanvas() {
+    ctx.fillStyle = "#0f0f1a";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-button {
-  margin-top: 15px;
-  padding: 10px 20px;
-  border: none;
-  background: #4CAF50;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 8px;
+function drawSnake() {
+    snake.forEach((part, index) => {
+        ctx.fillStyle = index === 0 ? "#00ffcc" : "#00aa88";
+        ctx.strokeStyle = "#0f0f1a";
+        ctx.fillRect(part.x, part.y, gridSize, gridSize);
+        ctx.strokeRect(part.x, part.y, gridSize, gridSize);
+    });
 }
 
-button:hover {
-  opacity: 0.9;
+function moveSnake() {
+    const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+    snake.unshift(head);
+
+    if (head.x === food.x && head.y === food.y) {
+        score += 10;
+        scoreEl.textContent = score;
+        if (score > highScore) {
+            highScore = score;
+            highScoreEl.textContent = highScore;
+            localStorage.setItem("snakeHighScore", highScore);
+        }
+        generateFood();
+    } else {
+        snake.pop();
+    }
+}
+
+function generateFood() {
+    food.x = Math.floor(Math.random() * tileCount) * gridSize;
+    food.y = Math.floor(Math.random() * tileCount) * gridSize;
+
+    snake.forEach(part => {
+        if (part.x === food.x && part.y === food.y) {
+            generateFood();
+        }
+    });
+}
+
+function drawFood() {
+    ctx.fillStyle = "#ff007f";
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "#ff007f";
+    ctx.fillRect(food.x, food.y, gridSize, gridSize);
+    ctx.shadowBlur = 0;
+}
+
+function changeDirection(event) {
+    const keyPressed = event.key;
+    const goingUp = dy === -gridSize;
+    const goingDown = dy === gridSize;
+    const goingRight = dx === gridSize;
+    const goingLeft = dx === -gridSize;
+
+    if ((keyPressed === "ArrowLeft" || keyPressed === "a") && !goingRight) {
+        dx = -gridSize;
+        dy = 0;
+    }
+    if ((keyPressed === "ArrowUp" || keyPressed === "w") && !goingDown) {
+        dx = 0;
+        dy = -gridSize;
+    }
+    if ((keyPressed === "ArrowRight" || keyPressed === "d") && !goingLeft) {
+        dx = gridSize;
+        dy = 0;
+    }
+    if ((keyPressed === "ArrowDown" || keyPressed === "s") && !goingUp) {
+        dx = 0;
+        dy = gridSize;
+    }
+}
+
+function hasGameEnded() {
+    const hitLeftWall = snake[0].x < 0;
+    const hitRightWall = snake[0].x >= canvas.width;
+    const hitToptWall = snake[0].y < 0;
+    const hitBottomWall = snake[0].y >= canvas.height;
+
+    if (hitLeftWall || hitRightWall || hitToptWall || hitBottomWall) return true;
+
+    for (let i = 4; i < snake.length; i++) {
+        if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
+    }
+    
+    return false;
 }
